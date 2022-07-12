@@ -1,9 +1,104 @@
-﻿# This contains functions for getting Azure AD access tokens
+﻿#AccessToken.ps1, or #*----------v Function AccessToken() v----------
+<#
+.SYNOPSIS
+AccessToken.ps1 - Forked copy of NestoriSyynimaa's AccessToken.ps1 from his broader AADInternals
+.NOTES
+Version     : 1.0.0
+Author      : Todd Kadrie
+Website     :	http://www.toddomation.com
+Twitter     :	@tostka / http://twitter.com/tostka
+CreatedDate : 2022-07-11
+FileName    : 
+License     : MIT License
+Copyright   : (c) 2022 Todd Kadrie
+Github      : https://github.com/tostka/verb-XXX
+Tags        : Powershell
+AddedCredit : Nestori Syynimaa 
+AddedWebsite:	https://github.com/Gerenios
+AddedTwitter:	URL
+REVISIONS
+.DESCRIPTION
+AccessToken.ps1 - Forked copy of NestoriSyynimaa's AccessToken.ps1 from his broader AADInternals
+This contains functions for getting Azure AD access tokens
 
-# Tries to get access token from cache unless provided as parameter
-# Refactored Jun 8th 2020
+includes following functions:
+#-=-=-=-=-=-=-=-=
+# primary function
+Get-AccessToken
+# balance are wrappers for above, to specific target endpoints
+|Cmdlet|Desc|ClientID|Resource|
+|---|---|---|---|
+|Get-AccessTokenForAADGraph|Gets OAuth Access Token for AAD Graph|1b730954-1685-4b74-9bfd-dac224a7b894|https://graph.windows.net|
+|Get-AccessTokenForAADIAMAPI|Gets OAuth Access Token for Azure AD IAM API|d3590ed6-52b3-4102-aeff-aad2292ab01c|https://graph.windows.net|
+|Get-AccessTokenForAADJoin|Gets OAuth Access Token for Azure AD Join|1b730954-1685-4b74-9bfd-dac224a7b894|01cb2876-7ebd-4aa4-9cc9-d28bd4d359a9|01cb2876-7ebd-4aa4-9cc9-d28bd4d359a9|
+|Get-AccessTokenForAdmin|Gets OAuth Access Token for admin.microsoft.com|d3590ed6-52b3-4102-aeff-aad2292ab01c|https://admin.microsoft.com|
+|Get-AccessTokenForAzureCoreManagement|Gets OAuth Access Token for Azure Core Management|d3590ed6-52b3-4102-aeff-aad2292ab01c|https://management.core.windows.net/|
+|Get-AccessTokenForCloudShell|Gets OAuth Access Token for Azure Cloud Shell|0c1307d4-29d6-4389-a11c-5cbe7f65d7fa||
+|Get-AccessTokenForEXO|Gets OAuth Access Token for Exchange Online|d3590ed6-52b3-4102-aeff-aad2292ab01c|https://outlook.office365.com|
+|Get-AccessTokenForEXOPS|Gets OAuth Access Token for Exchange Online remote PowerShell|a0c73c16-a7e3-4564-9a95-2bdf47383716|https://outlook.office365.com|
+|Get-AccessTokenForIntuneMDM|Gets OAuth Access Token for Intune MDM|29d9ed98-a469-4536-ade2-f981bc1d605e|https://enrollment.manage.microsoft.com/|
+|Get-AccessTokenForMSCommerce|Gets OAuth Access Token for MS Commerce|3d5cffa9-04da-4657-8cab-c7f074657cad|aeb86249-8ea3-49e2-900b-54cc8e308f85|
+|Get-AccessTokenForMSGraph|Gets OAuth Access Token for Microsoft Graph|1b730954-1685-4b74-9bfd-dac224a7b894|https://graph.microsoft.com|
+|Get-AccessTokenForMSPartner|Gets OAuth Access Token for MS Partner|d3590ed6-52b3-4102-aeff-aad2292ab01c|fa3d9a0c-3fb0-42cc-9193-47c7ecd2edbd|
+|Get-AccessTokenForMySignins|Gets OAuth Access Token for My Signins|1b730954-1685-4b74-9bfd-dac224a7b894|0000000c-0000-0000-c000-000000000000|
+|Get-AccessTokenForOfficeApps|Gets OAuth Access Token for Office Apps|1b730954-1685-4b74-9bfd-dac224a7b894|https://officeapps.live.com|
+# appears to be a dupe, same func name on both:
+|Get-AccessTokenForOfficeApps|Gets OAuth Access Token for Office Apps|ab9b8c07-8f02-4f72-87fa-80105867a763|https://officeapps.live.com|
+|Get-AccessTokenForOneDrive|Gets OAuth Access Token for OneDrive|ab9b8c07-8f02-4f72-87fa-80105867a763|https://$Tenant-my.sharepoint.com/|
+|Get-AccessTokenForOneNote|Gets OAuth Access Token for onenote.com|1fec8e78-bce4-4aaf-ab1b-5451cc387264|https://onenote.com|
+|Get-AccessTokenForPTA|Gets OAuth Access Token for PTA|cb1056e2-e479-49de-ae31-7812af012ed8|https://proxy.cloudwebappproxy.net/registerapp|
+|Get-AccessTokenForSARA|Gets OAuth Access Token for SARA|d3590ed6-52b3-4102-aeff-aad2292ab01c|https://api.diagnostics.office.com|
+|Get-AccessTokenForSPO|Gets OAuth Access Token for SharePoint Online|9bc3ab49-b65d-410a-85ad-de819febfddc|0000000c-0000-0000-c000-000000000000|
+|Get-AccessTokenForTeams|Gets OAuth Access Token for Teams|1fec8e78-bce4-4aaf-ab1b-5451cc387264|https://api.spaces.skype.com|
+|Get-AccessTokenFromCache|Tries to generate access token using cached AADGraph token|||
+|Get-AccessTokenUsingAADGraph|Tries to generate access token using cached AADGraph token|1b730954-1685-4b74-9bfd-dac224a7b894||
+|Get-AccessTokenUsingDeviceCode|Gets access token using device code flow|||
+|Get-AccessTokenWithAuthorizationCode|Gets the access token using an authorization code|||
+|Get-AccessTokenWithDeviceSAML|Gets the access token using device SAML token|1b730954-1685-4b74-9bfd-dac224a7b894|01cb2876-7ebd-4aa4-9cc9-d28bd4d359a9|
+|Get-AccessTokenWithRefreshToken|Gets the access token using a refresh token|||
+|Get-IdentityTokenByLiveId|Gets identity_token for SharePoint Online for External user|||
+#-=-=-=-=-=-=-=-=
+.EXAMPLE
+PS> ipmo .\AccessToken.ps1 
+.LINK
+https://github.com/tostka/verb-aad
+.LINK
+https://github.com/tostka/AADInternals
+.LINK
+https://github.com/Gerenios/AADInternals
+#>
+
+<## transplanted below from AADInternals.psm1
+# not sure if these are needed
+# Add some assemblies
+Add-type -AssemblyName System.xml.linq                 -ErrorAction SilentlyContinue
+Add-Type -AssemblyName System.Runtime.Serialization    -ErrorAction SilentlyContinue
+Add-Type -AssemblyName System.Windows.Forms            -ErrorAction SilentlyContinue
+Add-Type -AssemblyName System.Web                      -ErrorAction SilentlyContinue
+Add-Type -AssemblyName System.Web.Extensions           -ErrorAction SilentlyContinue
+Add-Type -path "$PSScriptRoot\BouncyCastle.Crypto.dll" -ErrorAction SilentlyContinue
+#>
+# Set supported TLS methods
+[Net.ServicePointManager]::SecurityProtocol = "Tls, Tls11, Tls12, Ssl3"
+
+
+# transplanted below from AccessToken_utils.ps1 (to make self-contained)
+# VARIABLES
+
+# Unix epoch time (1.1.1970)
+$epoch = Get-Date -Day 1 -Month 1 -Year 1970 -Hour 0 -Minute 0 -Second 0 -Millisecond 0
+
+
 function Get-AccessTokenFromCache
 {
+    <#
+    .SYNOPSIS
+    Tries to get access token from cache unless provided as parameter
+    .DESCRIPTION
+    Tries to get access token from cache unless provided as parameter
+    .NOTES
+    Refactored Jun 8th 2020
+    #>
     [cmdletbinding()]
     Param(
         [Parameter(Mandatory=$False)]
@@ -1380,10 +1475,74 @@ function Get-AccessTokenForOneNote
     }
 }
 
-# Gets the access token for provisioning API and stores to cache
-# Refactored Jun 8th 2020
+#*----------v Function Get-AccessToken() v----------
 function Get-AccessToken
 {
+<#
+.SYNOPSIS
+Get-AccessToken.ps1 - Gets the access token for provisioning API and stores to cache
+.NOTES
+Version     : 1.0.0
+Author      : Todd Kadrie
+Website     :	http://www.toddomation.com
+Twitter     :	@tostka / http://twitter.com/tostka
+CreatedDate : 2022-
+FileName    : 
+License     : MIT License
+Copyright   : (c) 2022 Todd Kadrie
+Github      : https://github.com/tostka/verb-XXX
+Tags        : Powershell
+AddedCredit : REFERENCE
+AddedWebsite:	URL
+AddedTwitter:	URL
+REVISIONS
+Refactored Jun 8th 2020
+.DESCRIPTION
+Gets the access token for provisioning API and stores to cache
+.PARAMETER PRTToken
+PRTToken
+.PARAMETER SAMLToken
+SAMLToken
+.PARAMETER Resource
+Resource
+.PARAMETER ClientId
+ClientId
+.PARAMETER Tenant
+Tenant
+.PARAMETER KerberosTicket
+KerberosTicket
+.PARAMETER Domain
+Domain
+.PARAMETER SaveToCache
+SaveToCache
+.PARAMETER IncludeRefreshToken
+IncludeRefreshToken
+.PARAMETER ForceMFA
+ForceMFA
+.PARAMETER UseDeviceCode
+UseDeviceCode
+.PARAMETER BPRT
+BPRT
+.PARAMETER Certificate
+Certificate
+.PARAMETER PfxFileName
+PfxFileName
+.PARAMETER PfxPassword
+PfxPassword
+.PARAMETER TransportKeyFileName
+TransportKeyFileName
+.EXAMPLE
+PS> Get-AccessToken -Credentials $Credentials -Resource $Resource -ClientId "1b730954-1685-4b74-9bfd-dac224a7b894" -SAMLToken $SAMLToken -Tenant $Tenant -KerberosTicket $KerberosTicket -Domain $Domain -SaveToCache $SaveToCache -PRTToken $PRTToken -UseDeviceCode $UseDeviceCode 
+Generic call to obtain token for AAD Graph.
+.EXAMPLE
+.LINK
+.LINK
+https://github.com/tostka/verb-aad
+.LINK
+https://github.com/tostka/AADInternals
+.LINK
+https://github.com/Gerenios/AADInternals
+#>    
     [cmdletbinding()]
     Param(
         [Parameter(Mandatory=$False)]
@@ -1983,6 +2142,7 @@ function Get-AccessTokenUsingAADGraph
     }
 }
 
+<# ==12:32 PM 7/11/2022: rem out, I just want the core tokenmgmt pieces.
 # Apr 22th 2022
 function Unprotect-EstsAuthPersistentCookie
 {
@@ -2039,3 +2199,4 @@ function Unprotect-EstsAuthPersistentCookie
         Invoke-RestMethod -UseBasicParsing -Uri "https://login.microsoftonline.com/forgetuser?sessionid=$((New-Guid).toString())" -WebSession $session
     }
 }
+#>
