@@ -1,4 +1,4 @@
-# Functions for emulating OneDrive native client
+﻿# Functions for emulating OneDrive native client
 
 # Gets the ID of default document library
 # Nov 26th 2019

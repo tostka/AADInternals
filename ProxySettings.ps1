@@ -1,4 +1,4 @@
-# This file contains functions for setting proxy settings for Windows devices
+﻿# This file contains functions for setting proxy settings for Windows devices
 
 # Sets proxy settings
 # Jan 20th 2022
@@ -228,7 +228,8 @@ Function Set-ProxySettings
             Write-Host "Trusting Fiddler root certificate:" -ForegroundColor Yellow
             $tmpFile = New-TemporaryFile
             Invoke-RestMethod -Uri "http://ipv4.fiddler:$proxyPort/FiddlerRoot.cer" -Proxy "http://$ProxyAddress" -OutFile $tmpFile
-            Import-Certificate -FilePath $tmpFile -CertStoreLocation "Cert:\LocalMachine\Root"            Remove-Item $tmpFile -Force
+            Import-Certificate -FilePath $tmpFile -CertStoreLocation "Cert:\LocalMachine\Root"
+            Remove-Item $tmpFile -Force
         }
 
         # Trust Burp Suite
@@ -237,7 +238,8 @@ Function Set-ProxySettings
             Write-Host "Trusting Burp root certificate:" -ForegroundColor Yellow
             $tmpFile = New-TemporaryFile
             Invoke-RestMethod -Uri "http://$ProxyAddress/cert" -OutFile $tmpFile
-            Import-Certificate -FilePath $tmpFile -CertStoreLocation "Cert:\LocalMachine\Root"            Remove-Item $tmpFile -Force
+            Import-Certificate -FilePath $tmpFile -CertStoreLocation "Cert:\LocalMachine\Root"
+            Remove-Item $tmpFile -Force
         }
 
     }

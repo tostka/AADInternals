@@ -1,4 +1,4 @@
-# This file contains functions for Intune MDM
+﻿# This file contains functions for Intune MDM
 
 # Enroll device to Intune MDM
 # Aug 29th
